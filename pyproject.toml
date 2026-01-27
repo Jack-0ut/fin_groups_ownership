@@ -1,0 +1,18 @@
+[project]
+name = "fin-groups"
+version = "0.1.0"
+description = "Ownership-based business group detection"
+authors = [{ name = "Yevhen Solovei" }]
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "requests",
+    "beautifulsoup4",
+    "pandas",
+    "networkx"
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
