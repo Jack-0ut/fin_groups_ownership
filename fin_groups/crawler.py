@@ -65,16 +65,10 @@ class CompanyCrawler:
             "source_url": o.get("profile_link"),
         })
 
-    def _store_relationship(
-        self,
-        owner_id: str,
-        company_id: str,
-        o: dict,
-        source_url: str,
-    ):
+    def _store_relationship(self, owner_id, company_id, o, source_url):
         role = (o.get("role") or "").lower()
 
-        if role == "director":
+        if role in {"director", "керівник", "підписант"}:
             control_level = "management"
         elif "бенефіціар" in role:
             control_level = "beneficial"
