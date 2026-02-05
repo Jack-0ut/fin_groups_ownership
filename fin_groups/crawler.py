@@ -14,7 +14,7 @@ class CompanyCrawler:
         self.db = db
         self.country = country
 
-    def crawl_company(self, tax_id: str) -> list[dict]:
+    def crawl_company(self, tax_id: str, print_owners: bool = False) -> list[dict]:
         company_url = BASE_URL.format(tax_id)
         company_id = company_entity_id(self.country, tax_id)
 
@@ -27,8 +27,10 @@ class CompanyCrawler:
 
             self._store_owner(owner_id, owner_type, o)
             self._store_relationship(owner_id, company_id, o, company_url)
-
-        print(owners)
+        
+        if print_owners:
+            print(owners)
+        
         return owners
 
     # ---------- internals ----------
