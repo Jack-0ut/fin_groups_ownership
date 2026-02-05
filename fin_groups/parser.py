@@ -31,36 +31,53 @@ def parse_owners(url: str) -> list[dict]:
     resp.raise_for_status()
 
     soup = BeautifulSoup(resp.text, "html.parser")
-    owners: list[dict] = []
+    people: list[dict] = []
 
+    # ---------- OWNERS ----------
     dt = soup.find("dt", string=re.compile(r"Власники"))
-    if not dt:
-        return owners
+    if dt:
+        for dd in dt.find_next_siblings("dd"):
+            name_tag = dd.find("a") or dd.find("p")
 
-    for dd in dt.find_next_siblings("dd"):
-        name_tag = dd.find("a") or dd.find("p")
+            svg = dd.find("svg", class_=re.compile("flag"))
+            country = svg.next_sibling.strip() if svg and svg.next_sibling else None
 
-        svg = dd.find("svg", class_=re.compile("flag"))
-        country = svg.next_sibling.strip() if svg and svg.next_sibling else None
+            role_p = dd.find("p", class_="small")
+            data = dd.find("data")
 
-        role_p = dd.find("p", class_="small")
-        data = dd.find("data")
+            people.append({
+                "name": name_tag.get_text(strip=True) if name_tag else None,
+                "profile_link": (
+                    f"https://opendatabot.ua{name_tag['href']}"
+                    if name_tag and name_tag.name == "a" and name_tag.has_attr("href")
+                    else None
+                ),
+                "country": country,
+                "role": role_p.get_text(strip=True) if role_p else "owner",
+                "amount_uah": int(data["value"]) if data and data.has_attr("value") else None,
+                "share_percent": (
+                    parse_share_percent(data.get_text()) if data else None
+                ),
+            })
 
-        owners.append({
-            "name": name_tag.get_text(strip=True) if name_tag else None,
-            "profile_link": (
-                f"https://opendatabot.ua{name_tag['href']}"
-                if name_tag
-                and name_tag.name == "a"
-                and name_tag.has_attr("href")
-                else None
-            ),
-            "country": country,
-            "role": role_p.get_text(strip=True) if role_p else None,
-            "amount_uah": int(data["value"]) if data and data.has_attr("value") else None,
-            "share_percent": (
-                parse_share_percent(data.get_text()) if data else None
-            ),
-        })
+    # ---------- DIRECTOR ----------
+    dt_director = soup.find("dt", string=re.compile(r"Директор"))
+    if dt_director:
+        dd = dt_director.find_next_sibling("dd")
+        if dd:
+            a = dd.find("a")
+            people.append({
+                "name": a.get_text(strip=True) if a else dd.get_text(strip=True),
+                "profile_link": (
+                    f"https://opendatabot.ua{a['href']}"
+                    if a and a.has_attr("href")
+                    else None
+                ),
+                "country": "Україна",
+                "role": "director",
+                "amount_uah": None,
+                "share_percent": 0.0,
+            })
 
-    return owners
+    return people
+

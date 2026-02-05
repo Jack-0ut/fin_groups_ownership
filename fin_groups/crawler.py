@@ -72,17 +72,22 @@ class CompanyCrawler:
         o: dict,
         source_url: str,
     ):
+        role = (o.get("role") or "").lower()
+
+        if role == "director":
+            control_level = "management"
+        elif "бенефіціар" in role:
+            control_level = "beneficial"
+        else:
+            control_level = "direct"
+
         self.db.upsert_ownership({
             "owner_id": owner_id,
             "owned_id": company_id,
             "role": o.get("role"),
             "share_percent": o.get("share_percent"),
             "capital_uah": o.get("amount_uah"),
-            "control_level": (
-                "beneficial"
-                if "бенефіціар" in (o.get("role") or "").lower()
-                else "direct"
-            ),
+            "control_level": control_level,
             "source": "opendatabot",
             "source_url": source_url,
         })
